@@ -19,22 +19,36 @@
         .input-area { display: flex; padding: 10px; background-color: var(--panel-bg); border-top: 1px solid var(--border-color); }
         input[type="text"] { flex-grow: 1; padding: 10px; border: 1px solid var(--border-color); border-radius: 4px; background-color: #0f172a; color: white; }
         .token-display { margin-top: auto; padding: 15px; border: 1px dashed var(--success-color); color: var(--success-color); text-align: center; display: none; }
+        .typing { font-style: italic; color: #94a3b8; font-size: 0.9em; }
     </style>
 </head>
 <body>
 
     <h1>עוזי - מנטור חלוקת רשתות (VLSM)</h1>
+    <div class="subtitle">פיתוח אפליקציה: בועז דוד ביטון | מכללת בית ברל</div>
     <div class="container">
         <div class="panel">
             <h2>תרחיש המעבדה</h2>
             <button onclick="generateScenario()">הגרל משימה חדשה 🎲</button>
             <div id="scenarioText" class="scenario-box">לחץ על הכפתור כדי להתחיל.</div>
-            <div id="tokenBox" class="token-display">כל הכבוד! קוד אימות:<br><strong>[VLSM-VERIFIED-SUCCESS-2026]</strong></div>
+            <div style="margin-top: 20px;">
+                <p><strong>הנחיות לסטודנט:</strong></p>
+                <ul style="line-height: 1.6; color: #cbd5e1;">
+                    <li>קרא את התרחיש למעלה.</li>
+                    <li>היעזר בעוזי המנטור כדי לתכנן את הרשת.</li>
+                    <li>עוזי לא יגלה לך את התשובה הסופית, אלא יכוון את החשיבה שלך.</li>
+                    <li>בסיום התהליך תקבל קוד אימות להגשה למורה.</li>
+                </ul>
+            </div>
+            <div id="tokenBox" class="token-display">כל הכבוד! קוד אימות:<br><strong style="font-size: 1.2em;">[VLSM-VERIFIED-SUCCESS-2026]</strong></div>
         </div>
         <div class="panel" style="padding: 0;">
+            <div style="padding: 15px 20px; background-color: #1e293b; border-bottom: 1px solid var(--border-color);">
+                <h2 style="margin: 0;">צ'אט עם עוזי 🤖</h2>
+            </div>
             <div class="chat-container">
                 <div class="chat-history" id="chatHistory">
-                    <div class="message bot-msg">שלום, אני עוזי. הגרל משימה ונתחיל!</div>
+                    <div class="message bot-msg">שלום! אני עוזי. לחץ על "הגרל משימה חדשה" כדי שנתחיל.</div>
                 </div>
                 <div class="input-area">
                     <input type="text" id="userInput" placeholder="הקלד כאן..." onkeypress="handleKeyPress(event)">
@@ -45,79 +59,93 @@
     </div>
 
     <script>
-        // פיצול מפתח ה-API
-        const keyPart1 = "AQ.Ab8RN6JHvS6FXiykuvLAu"; 
-        const keyPart2 = "QUcxm4LBkVjd3cZvi7TjZEppNfdTA";
-        const API_KEY = keyPart1 + keyPart2;
-        
-        const SYSTEM_PROMPT = `אתה "עוזי", חונך סוקרטי קשוח אך תומך, המומחה ברשתות תקשורת ו-Subnetting. אתה עובד עם סטודנטים במגמת תקשוב.
-        חוקי ברזל: לעולם אל תיתן לתלמיד כתובת IP או מסיכה סופית. ענה קצר, שאל שאלות מנחות אחת בכל פעם.
-        מנוע הפיגומים: 
-        1. בקש למצוא חזקת 2 קרובה למארחים.
-        2. בקש למצוא כמה ביטים להשאיל מהמארחים.
-        3. בקש להמיר ביטים למסיכה עשרונית.
-        4. בקש למצוא קפיצות רשת.
-        בסיום מוצלח של כל השלבים כתוב במדויק: [VLSM-VERIFIED-SUCCESS-2026]`;
-
-        let chatHistoryData = [];
-        const scenarios = [
-            "קיבלת את הרשת 192.168.10.0/24. עליך להקים תת-רשת עבור מחלקת הפיתוח הדורשת 60 מחשבים.",
-            "קיבלת את הרשת 172.16.0.0/16. מחלקת משאבי אנוש זקוקה ל-120 משתמשים.",
-            "לארגון הוקצתה הרשת 10.0.0.0/8. מחלקת הנהלה צריכה 14 מחשבים."
-        ];
+        // ניהול המצב (State) של הבוט ללא API
+        let currentStep = 0;
 
         function generateScenario() {
-            document.getElementById("scenarioText").innerText = scenarios[Math.floor(Math.random() * scenarios.length)];
-            chatHistoryData = []; 
-            document.getElementById("chatHistory").innerHTML = '<div class="message bot-msg">המשימה עודכנה. בוא נתחיל: מהי חזקת ה-2 הקרובה ביותר למספר המארחים?</div>';
+            document.getElementById("scenarioText").innerText = "קיבלת את הרשת 192.168.10.0/24. עליך להקים תת-רשת עבור מחלקת הפיתוח הדורשת 60 מחשבים. מה תהיה מסיכת הרשת החדשה?";
+            document.getElementById("chatHistory").innerHTML = '';
             document.getElementById("tokenBox").style.display = "none";
+            currentStep = 1;
+            addMessageToChat("bot", "מעולה! המשימה עודכנה. בוא נתחיל לנתח אותה לפי מודל הפיגומים שלנו: מהי חזקת 2 הקרובה ביותר שמכסה את כמות המארחים (60) שביקשו בתרחיש?");
         }
 
-        async function sendMessage() {
+        function sendMessage() {
             const inputField = document.getElementById("userInput");
             const message = inputField.value.trim();
             if (!message) return;
 
             addMessageToChat("user", message);
             inputField.value = "";
-            chatHistoryData.push({ role: "user", parts: [{ text: message }] });
+            const typingId = addMessageToChat("bot", "עוזי חושב...", true);
 
-            try {
-                // שימוש במודל gemini-1.5-flash הבסיסי והיציב ביותר ב-v1beta
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        "systemInstruction": { "parts": [{ "text": SYSTEM_PROMPT }] },
-                        "contents": chatHistoryData
-                    })
-                });
+            // השהייה קלה כדי לדמות חשיבה של AI
+            setTimeout(() => {
+                document.getElementById(typingId).remove();
+                let botReply = "";
 
-                const data = await response.json();
-                if (data.candidates && data.candidates.length > 0) {
-                    const botReply = data.candidates[0].content.parts[0].text;
-                    chatHistoryData.push({ role: "model", parts: [{ text: botReply }] });
-                    addMessageToChat("bot", botReply);
-                    
-                    if (botReply.includes("[VLSM-VERIFIED-SUCCESS-2026]")) {
-                        document.getElementById("tokenBox").style.display = "block";
+                // בדיקת Guardrails (חוקי ברזל)
+                if (message.includes("תשובה") || message.includes("ממהר") || message.includes("IP") || message.includes("פתרון")) {
+                    botReply = "בתור עוזי, חל עלי איסור מוחלט לתת לך את התשובה הסופית! אני מבין שאתה לחוץ, אבל הלמידה האמיתית קורית בתהליך. בוא נחזור לשאלה שלי...";
+                } 
+                // שלב 1: חזקת 2 (64)
+                else if (currentStep === 1) {
+                    if (message.includes("64")) {
+                        botReply = "מצוין! 64 באמת נותן לנו מספיק מקום ל-60 מחשבים (פחות 2 לכתובת רשת ושידור). עכשיו לשלב השני: כמה ביטים אנחנו צריכים 'ללוות' מאוקטטת המארחים כדי לייצג את הרשת החדשה?";
+                        currentStep = 2;
+                    } else {
+                        botReply = "לא מדויק. תחשוב על חזקות של 2 (2, 4, 8, 16, 32, 64...). איזו חזקה היא הראשונה שגדולה מ-60?";
                     }
-                } else if (data.error) {
-                    addMessageToChat("bot", "שגיאה מהשרת: " + data.error.message);
+                } 
+                // שלב 2: ביטים להשאלה (2)
+                else if (currentStep === 2) {
+                    if (message.includes("2")) {
+                        botReply = "כל הכבוד! אנחנו משאילים 2 ביטים. לשלב השלישי: אם נדליק את 2 הביטים השמאליים ביותר באוקטטה (11000000), איזה מספר עשרוני נקבל? זה יהיה ה-Subnet Mask החדש שלנו.";
+                        currentStep = 3;
+                    } else {
+                        botReply = "לא בדיוק. שים לב, נשארו לנו 6 ביטים למארחים (כי 2 בשישית זה 64). אז כמה ביטים מתוך ה-8 לקחנו לרשת?";
+                    }
+                } 
+                // שלב 3: מסיכה (192)
+                else if (currentStep === 3) {
+                    if (message.includes("192")) {
+                        botReply = "אלוף! המסיכה החדשה היא אכן 255.255.255.192. לשלב הרביעי והאחרון: מהי 'קפיצת הרשת' שלנו (Block Size)? (רמז: 256 פחות המסיכה שמצאת).";
+                        currentStep = 4;
+                    } else {
+                        botReply = "נסה שוב. הביט הראשון משמאל שווה 128, הביט השני שווה 64. מה קורה כשמחברים אותם?";
+                    }
+                } 
+                // שלב 4: קפיצות (64) וסיום
+                else if (currentStep === 4) {
+                    if (message.includes("64")) {
+                        botReply = "בינגו! הגעת לפתרון בכוחות עצמך ועברת את כל 4 שלבי הפיגומים. אני גאה בך! הפקתי עבורך את קוד האימות למורה.";
+                        document.getElementById("tokenBox").style.display = "block";
+                        currentStep = 5;
+                    } else {
+                        botReply = "כמעט שם... תעשה את החשבון הפשוט: 256 פחות 192. כמה זה יוצא?";
+                    }
                 }
-            } catch (error) {
-                addMessageToChat("bot", "שגיאת תקשורת.");
-                console.error(error);
-            }
+                // סיום תהליך
+                else if (currentStep === 5) {
+                    botReply = "סיימנו את המעבדה הזו בהצלחה. אתה מוזמן להעתיק את קוד האימות מהצד או להגריל משימה חדשה.";
+                }
+
+                addMessageToChat("bot", botReply);
+            }, 800);
         }
 
-        function addMessageToChat(sender, text) {
+        function addMessageToChat(sender, text, isTyping = false) {
             const chatHistory = document.getElementById("chatHistory");
             const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
-            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+            const msgId = "msg-" + Date.now();
+            msgDiv.id = msgId;
+            let classes = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
+            if (isTyping) classes += " typing";
+            msgDiv.className = classes;
+            msgDiv.innerHTML = text; 
             chatHistory.appendChild(msgDiv);
-            chatHistory.scrollTop = chatHistory.scrollHeight; // גלילה אוטומטית למטה
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+            return msgId;
         }
         
         function handleKeyPress(e) { if (e.key === "Enter") sendMessage(); }
