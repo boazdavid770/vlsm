@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>סימולטור Subnetting - פרויקט גמר</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --panel-bg: #1e293b;
+            --text-color: #e2e8f0;
+            --accent-color: #38bdf8;
+            --success-color: #22c55e;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+            height: 70vh;
+        }
+
+        .panel {
+            background-color: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .scenario-box {
+            background-color: rgba(56, 189, 248, 0.1);
+            border-right: 4px solid var(--accent-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 1.1em;
+            line-height: 1.5;
+        }
+
+        button {
+            background-color: var(--accent-color);
+            color: #0f172a;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 20px;
+        }
+
+        button:hover {
+            background-color: #7dd3fc;
+        }
+
+        .chat-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: #0b1120;
+            overflow: hidden;
+        }
+
+        .chat-history {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 8px;
+            line-height: 1.4;
+        }
+
+        .bot-msg {
+            background-color: #1e293b;
+            border: 1px solid var(--border-color);
+            align-self: flex-start;
+            border-bottom-right-radius: 0;
+        }
+
+        .user-msg {
+            background-color: var(--accent-color);
+            color: #0f172a;
+            align-self: flex-end;
+            border-bottom-left-radius: 0;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 10px;
+            background-color: var(--panel-bg);
+            border-top: 1px solid var(--border-color);
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: #0f172a;
+            color: white;
+            font-family: inherit;
+        }
+
+        .input-area button {
+            margin-bottom: 0;
+            margin-right: 10px;
+        }
+
+        .token-display {
+            margin-top: auto;
+            padding: 15px;
+            background-color: rgba(34, 197, 94, 0.1);
+            border: 1px dashed var(--success-color);
+            color: var(--success-color);
+            text-align: center;
+            border-radius: 5px;
+            display: none;
+            font-family: monospace;
+            font-size: 1.2em;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>עוזי - מנטור חלוקת רשתות (VLSM)</h1>
+    <div class="subtitle">פיתוח אפליקציה: בועז דוד ביטון | מכללת בית ברל</div>
+
+    <div class="container">
+        <div class="panel">
+            <h2>תרחיש המעבדה שלך</h2>
+            <button onclick="generateScenario()">הגרל משימה חדשה 🎲</button>
+            <div id="scenarioText" class="scenario-box">
+                לחץ על הכפתור כדי לקבל משימת Subnetting.
+            </div>
+            
+            <div style="margin-top: 20px;">
+                <p><strong>הנחיות לסטודנט:</strong></p>
+                <ul style="line-height: 1.6; color: #cbd5e1;">
+                    <li>קרא את התרחיש למעלה.</li>
+                    <li>היעזר בעוזי המנטור כדי לתכנן את הרשת.</li>
+                    <li>עוזי לא יגלה לך את התשובה הסופית, אלא יכוון את החשיבה שלך.</li>
+                    <li>בסיום התהליך תקבל קוד אימות להגשה.</li>
+                </ul>
+            </div>
+            
+            <div id="tokenBox" class="token-display">
+                קוד אימות הופק: <br><strong>[VLSM-VERIFIED-SUCCESS-2026]</strong>
+            </div>
+        </div>
+
+        <div class="panel" style="padding: 0;">
+            <div style="padding: 15px 20px; background-color: #1e293b; border-bottom: 1px solid var(--border-color);">
+                <h2 style="margin: 0;">צ'אט עם עוזי 🤖</h2>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-history" id="chatHistory">
+                    <div class="message bot-msg">
+                        שלום! אני עוזי. ברגע שתגריל משימה, אשמח לעזור לך לחשב את תתי-הרשתות. מאיפה נתחיל?
+                    </div>
+                </div>
+                <div class="input-area">
+                    <input type="text" id="userInput" placeholder="הקלד את התשובה או השאלה שלך כאן..." onkeypress="handleKeyPress(event)">
+                    <button onclick="sendMessage()">שלח</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const scenarios = [
+            "קיבלת את הרשת 192.168.10.0/24. עליך להקים תת-רשת עבור מחלקת הפיתוח הדורשת 60 מחשבים. מה תהיה מסיכת הרשת החדשה?",
+            "קיבלת את הרשת 172.16.0.0/16. מחלקת משאבי אנוש זקוקה ל-120 משתמשים. מהי חזקת ה-2 הקרובה ביותר ומהי הקפיצה (Block Size)?",
+            "לארגון הוקצתה הרשת 10.0.0.0/8. נדרש להגדיר רשת נקודה-לנקודה (Point-to-Point) בין שני ראוטרים. כמה כתובות IP נדרשות ומה תהיה המסיכה?"
+        ];
+
+        function generateScenario() {
+            const randomIndex = Math.floor(Math.random() * scenarios.length);
+            const scenario = scenarios[randomIndex];
+            document.getElementById("scenarioText").innerText = scenario;
+            
+            const chatHistory = document.getElementById("chatHistory");
+            chatHistory.innerHTML = `<div class="message bot-msg">מעולה! המשימה עודכנה. בוא נתחיל לנתח אותה: כמה מארחים (Hosts) אנחנו צריכים בפועל לפי התרחיש?</div>`;
+            document.getElementById("tokenBox").style.display = "none";
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        async function sendMessage() {
+            const inputField = document.getElementById("userInput");
+            const message = inputField.value.trim();
+            if (!message) return;
+
+            addMessageToChat("user", message);
+            inputField.value = "";
+
+            // תשובה מדומה לשם ההדגמה בסרטון ובפיתוח הראשוני
+            setTimeout(() => {
+                let botReply = "כדי שאוכל לכוון אותך, תגיד לי - מהי חזקת 2 הקרובה ביותר שמכסה את מספר המחשבים שביקשו בתרחיש?";
+                
+                if(message.includes("255.255.255.192") || message.includes("/26") || message.includes("64")) {
+                    botReply = "כל הכבוד! הבנת את הלוגיקה של חלוקת הרשת והגעת למסיכה הנכונה בעצמך. עברת את המעבדה בהצלחה!";
+                    document.getElementById("tokenBox").style.display = "block";
+                }
+                
+                addMessageToChat("bot", botReply);
+            }, 800);
+        }
+
+        function addMessageToChat(sender, text) {
+            const chatHistory = document.getElementById("chatHistory");
+            const msgDiv = document.createElement("div");
+            msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
+            msgDiv.innerText = text;
+            chatHistory.appendChild(msgDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+    </script>
+</body>
+</html>
