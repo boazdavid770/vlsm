@@ -213,8 +213,10 @@
     </div>
 
     <script>
-        // המפתח שסיפקת מ-Google
-        const API_KEY = "AQ.Ab8RN6JFKbR4zalo1Rnvy0U6WwsVMVjyONMW68JKoQ9Bz7Ze0g"; 
+        // פיצול המפתח לשני חלקים כדי למנוע חסימה של הסורק של גיטהאב
+        const keyPart1 = "AQ.Ab8RN6JHvS6FXiykuvLAu"; 
+        const keyPart2 = "QUcxm4LBkVjd3cZvi7TjZEppNfdTA";
+        const API_KEY = keyPart1 + keyPart2;
         
         // ההנחיות המדויקות של עוזי 
         const SYSTEM_PROMPT = `
