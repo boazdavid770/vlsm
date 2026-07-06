@@ -5,14 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>סימולטור Subnetting - פרויקט גמר</title>
     <style>
-        :root {
-            --bg-color: #0f172a;
-            --panel-bg: #1e293b;
-            --text-color: #e2e8f0;
-            --accent-color: #38bdf8;
-            --success-color: #22c55e;
-            --border-color: #334155;
-        }
+        :root { --bg-color: #0f172a; --panel-bg: #1e293b; --text-color: #e2e8f0; --accent-color: #38bdf8; --success-color: #22c55e; --border-color: #334155; }
         body { font-family: sans-serif; background-color: var(--bg-color); color: var(--text-color); margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
         .container { display: flex; flex-direction: row; gap: 20px; width: 100%; max-width: 1000px; height: 70vh; }
         .panel { background-color: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 20px; flex: 1; display: flex; flex-direction: column; }
@@ -56,7 +49,14 @@
         const keyPart2 = "QUcxm4LBkVjd3cZvi7TjZEppNfdTA";
         const API_KEY = keyPart1 + keyPart2;
         
-        const SYSTEM_PROMPT = `אתה "עוזי", חונך סוקרטי קשוח אך תומך, המומחה ברשתות תקשורת ו-Subnetting... (המשך ההנחיות כפי שסיכמנו)`;
+        const SYSTEM_PROMPT = `אתה "עוזי", חונך סוקרטי קשוח אך תומך, המומחה ברשתות תקשורת ו-Subnetting. אתה עובד עם סטודנטים במגמת תקשוב.
+        חוקי ברזל: לעולם אל תיתן לתלמיד כתובת IP או מסיכה סופית. ענה קצר, שאל שאלות מנחות.
+        מנוע הפיגומים: 
+        1. בקש למצוא חזקת 2 קרובה למארחים.
+        2. בקש למצוא כמה ביטים להשאיל מהמארחים.
+        3. בקש להמיר ביטים למסיכה עשרונית.
+        4. בקש למצוא קפיצות רשת.
+        בסיום מוצלח של כל השלבים כתוב: [VLSM-VERIFIED-SUCCESS-2026]`;
 
         let chatHistoryData = [];
         const scenarios = [
@@ -68,7 +68,7 @@
         function generateScenario() {
             document.getElementById("scenarioText").innerText = scenarios[Math.floor(Math.random() * scenarios.length)];
             chatHistoryData = []; 
-            document.getElementById("chatHistory").innerHTML = '<div class="message bot-msg">המשימה עודכנה. מהי חזקת ה-2 הקרובה ביותר למספר המארחים?</div>';
+            document.getElementById("chatHistory").innerHTML = '<div class="message bot-msg">המשימה עודכנה. בוא נתחיל: מהי חזקת ה-2 הקרובה ביותר למספר המארחים?</div>';
             document.getElementById("tokenBox").style.display = "none";
         }
 
@@ -82,13 +82,12 @@
             chatHistoryData.push({ role: "user", parts: [{ text: message }] });
 
             try {
-                // השינוי הקריטי: הגדרת המודל בתוך ה-Body של ה-JSON
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                // שימוש ב-v1 היציב ובמודל gemini-1.5-flash
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        "model": "models/gemini-1.5-flash",
-                        "systemInstruction": { parts: [{ text: SYSTEM_PROMPT }] },
+                        "system_instruction": { "parts": [{ "text": SYSTEM_PROMPT }] },
                         "contents": chatHistoryData
                     })
                 });
@@ -99,9 +98,11 @@
                     chatHistoryData.push({ role: "model", parts: [{ text: botReply }] });
                     addMessageToChat("bot", botReply);
                     if (botReply.includes("[VLSM-VERIFIED-SUCCESS-2026]")) document.getElementById("tokenBox").style.display = "block";
+                } else {
+                    addMessageToChat("bot", "שגיאה מהשרת: " + JSON.stringify(data.error));
                 }
             } catch (error) {
-                addMessageToChat("bot", "שגיאה בגישה ל-API. נסה שוב.");
+                addMessageToChat("bot", "שגיאת תקשורת.");
             }
         }
 
