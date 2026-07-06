@@ -157,6 +157,12 @@
             font-family: monospace;
             font-size: 1.2em;
         }
+        
+        .typing {
+            font-style: italic;
+            color: #94a3b8;
+            font-size: 0.9em;
+        }
     </style>
 </head>
 <body>
@@ -178,12 +184,12 @@
                     <li>קרא את התרחיש למעלה.</li>
                     <li>היעזר בעוזי המנטור כדי לתכנן את הרשת.</li>
                     <li>עוזי לא יגלה לך את התשובה הסופית, אלא יכוון את החשיבה שלך.</li>
-                    <li>בסיום התהליך תקבל קוד אימות להגשה.</li>
+                    <li>בסיום התהליך תקבל קוד אימות להגשה למורה.</li>
                 </ul>
             </div>
             
             <div id="tokenBox" class="token-display">
-                קוד אימות הופק: <br><strong>[VLSM-VERIFIED-SUCCESS-2026]</strong>
+                כל הכבוד! קוד האימות שלך:<br><strong style="font-size: 1.2em;">[VLSM-VERIFIED-SUCCESS-2026]</strong>
             </div>
         </div>
 
@@ -195,7 +201,7 @@
             <div class="chat-container">
                 <div class="chat-history" id="chatHistory">
                     <div class="message bot-msg">
-                        שלום! אני עוזי. ברגע שתגריל משימה, אשמח לעזור לך לחשב את תתי-הרשתות. מאיפה נתחיל?
+                        שלום! אני עוזי. לחץ על "הגרל משימה חדשה" כדי שנתחיל.
                     </div>
                 </div>
                 <div class="input-area">
@@ -207,10 +213,35 @@
     </div>
 
     <script>
+        // המפתח שסיפקת מ-Google
+        const API_KEY = "AQ.Ab8RN6JFKbR4zalo1Rnvy0U6WwsVMVjyONMW68JKoQ9Bz7Ze0g"; 
+        
+        // ההנחיות המדויקות של עוזי 
+        const SYSTEM_PROMPT = `
+אתה "עוזי", חונך סוקרטי קשוח אך תומך, המומחה ברשתות תקשורת ו-Subnetting. קהל היעד שלך הוא סטודנטים במגמת תקשוב שמבצעים מעבדת חלוקת רשתות (VLSM).
+
+חוקי ברזל (Guardrails - חל איסור מוחלט להפר אותם):
+לעולם אל תיתן לתלמיד כתובת IP מלאה, Subnet Mask (עשרוני או CIDR) או את טווחי הרשת הסופיים.
+אם התלמיד מבקש את הפתרון הישיר, מתחנן, או אומר שהוא ממהר למבחן, עליך לסרב בנימוס ולהסביר שהלמידה האמיתית קורית בתהליך, ולהחזיר אותו לשלב הנוכחי בחקירה.
+ענה בצורה קצרה וממוקדת. אל תספק הסברים ארוכים מדי. שאל שאלה אחת בכל פעם כדי להוביל אותו.
+
+מנוע הפיגומים (4 שלבי ההדרכה):
+הובל את התלמיד צעד אחר צעד לפי הסדר הבא. אל תעבור לשלב הבא לפני שהתלמיד ענה נכון על השלב הנוכחי:
+שלב 1: בקש מהתלמיד למצוא את חזקת 2 הקרובה ביותר שמכילה את כמות המארחים (Hosts) הנדרשת (זכור לו להזכיר את נוסחת פחות 2 עבור רשת ושידור, אם הוא שוכח).
+שלב 2: לאחר שהבין את החזקה, שאל אותו כמה ביטים הוא צריך "ללוות" מאוקטטת המארחים לטובת הרשת.
+שלב 3: בקש ממנו להמיר את הביטים הדלוקים החדשים למספר עשרוני כדי לגלות את ה-Subnet Mask החדש.
+שלב 4: שאל אותו מהי "קפיצת הרשת" (ההפרש בין 256 למסיכה) כדי למצוא את טווח הכתובות של המחלקה.
+
+הנפקת קוד אימות (Verification Token):
+ברגע (ורק ברגע) שהתלמיד עבר בהצלחה את כל 4 השלבים והגיע בעצמו לפתרון הנכון של התרחיש המוצג לו, עליך לברך אותו על העבודה המאומצת, ולכתוב לו את קוד האימות הבא כדי שיוכל להגיש למורה: [VLSM-VERIFIED-SUCCESS-2026].
+        `;
+
+        let chatHistoryData = [];
+
         const scenarios = [
             "קיבלת את הרשת 192.168.10.0/24. עליך להקים תת-רשת עבור מחלקת הפיתוח הדורשת 60 מחשבים. מה תהיה מסיכת הרשת החדשה?",
             "קיבלת את הרשת 172.16.0.0/16. מחלקת משאבי אנוש זקוקה ל-120 משתמשים. מהי חזקת ה-2 הקרובה ביותר ומהי הקפיצה (Block Size)?",
-            "לארגון הוקצתה הרשת 10.0.0.0/8. נדרש להגדיר רשת נקודה-לנקודה (Point-to-Point) בין שני ראוטרים. כמה כתובות IP נדרשות ומה תהיה המסיכה?"
+            "לארגון הוקצתה הרשת 10.0.0.0/8. מחלקת הנהלה צריכה 14 מחשבים. איזה Subnet Mask יהיה הכי יעיל בלי לבזבז כתובות?"
         ];
 
         function generateScenario() {
@@ -218,8 +249,11 @@
             const scenario = scenarios[randomIndex];
             document.getElementById("scenarioText").innerText = scenario;
             
+            // איפוס השיחה מול ה-API והמסך
+            chatHistoryData = []; 
             const chatHistory = document.getElementById("chatHistory");
-            chatHistory.innerHTML = `<div class="message bot-msg">מעולה! המשימה עודכנה. בוא נתחיל לנתח אותה: כמה מארחים (Hosts) אנחנו צריכים בפועל לפי התרחיש?</div>`;
+            chatHistory.innerHTML = '';
+            addMessageToChat("bot", "מעולה! המשימה עודכנה. בוא נתחיל. קרא את התרחיש למעלה ותגיד לי - לפי השלב הראשון שלנו, מהי חזקת 2 הקרובה ביותר שמכסה את כמות המארחים שביקשו?");
             document.getElementById("tokenBox").style.display = "none";
         }
 
@@ -236,27 +270,60 @@
 
             addMessageToChat("user", message);
             inputField.value = "";
+            chatHistoryData.push({ role: "user", parts: [{ text: message }] });
 
-            // תשובה מדומה לשם ההדגמה בסרטון ובפיתוח הראשוני
-            setTimeout(() => {
-                let botReply = "כדי שאוכל לכוון אותך, תגיד לי - מהי חזקת 2 הקרובה ביותר שמכסה את מספר המחשבים שביקשו בתרחיש?";
-                
-                if(message.includes("255.255.255.192") || message.includes("/26") || message.includes("64")) {
-                    botReply = "כל הכבוד! הבנת את הלוגיקה של חלוקת הרשת והגעת למסיכה הנכונה בעצמך. עברת את המעבדה בהצלחה!";
-                    document.getElementById("tokenBox").style.display = "block";
+            const typingIndicatorId = addMessageToChat("bot", "עוזי מקליד...", true);
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+                        contents: chatHistoryData
+                    })
+                });
+
+                const data = await response.json();
+                document.getElementById(typingIndicatorId).remove();
+
+                if (data.candidates && data.candidates.length > 0) {
+                    const botReply = data.candidates[0].content.parts[0].text;
+                    chatHistoryData.push({ role: "model", parts: [{ text: botReply }] });
+                    addMessageToChat("bot", botReply);
+
+                    // אם עוזי הנפיק את הקוד, נציג אותו בגדול בצד
+                    if (botReply.includes("[VLSM-VERIFIED-SUCCESS-2026]")) {
+                        document.getElementById("tokenBox").style.display = "block";
+                    }
+                } else if (data.error) {
+                    addMessageToChat("bot", "שגיאה בגישה ל-API: " + data.error.message);
+                } else {
+                    addMessageToChat("bot", "אופס, לא הצלחתי לעבד את זה. תוכל לנסח שוב?");
                 }
-                
-                addMessageToChat("bot", botReply);
-            }, 800);
+
+            } catch (error) {
+                document.getElementById(typingIndicatorId).remove();
+                addMessageToChat("bot", "שגיאת תקשורת. ייתכן שיש בעיה במפתח ה-API או בחיבור לרשת.");
+                console.error("API Error:", error);
+            }
         }
 
-        function addMessageToChat(sender, text) {
+        function addMessageToChat(sender, text, isTyping = false) {
             const chatHistory = document.getElementById("chatHistory");
             const msgDiv = document.createElement("div");
-            msgDiv.className = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
-            msgDiv.innerText = text;
+            const msgId = "msg-" + Date.now();
+            msgDiv.id = msgId;
+            
+            let classes = `message ${sender === 'user' ? 'user-msg' : 'bot-msg'}`;
+            if (isTyping) classes += " typing";
+            msgDiv.className = classes;
+            
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>'); 
+            
             chatHistory.appendChild(msgDiv);
             chatHistory.scrollTop = chatHistory.scrollHeight;
+            return msgId;
         }
     </script>
 </body>
